@@ -41,19 +41,33 @@
         	}
             return this;
         },
+        setLayout: function(layoutType) {
+        	this.layout = layoutType;
+        	return this;
+        },
         circle: function(params) {
 			this.container.appendChild(this.addSVG("circle", params));
 			return this;
         },
+        getCoord: function(params) {
+	        return {'x': this.width*Math.random(),
+	        		'y': this.height*Math.random()
+	        	}
+        },
         addCircle: function(params) {
+	        let coord = this.getCoord(params)
         	this.circle({
-				cx: this.width*Math.random(),
-				cy: this.height*Math.random(),
+        		cx: coord['x'],
+        		cy: coord['y'],
 				r: params['r'],
-				stroke: "#fff",
-				fill: "red",
-				style: "stroke-width:0"
+				stroke: null,
+				fill: (params['color'] != null) ? params['color'] : "#f00",
+				style: "stroke-width:0",
+				id: params['id']
 			});
+        	return this;
+        },
+        setCallback: function(config, callback) {
         	return this;
         }
     };
