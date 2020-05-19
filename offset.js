@@ -32,20 +32,29 @@
 			}
 			return el;
 		},
+		addHTML: function(tag, text, attrs) {
+			var el = document.createElementNS('http://www.w3.org/1999/xhtml', tag);
+			for (var k in attrs) {
+				el.setAttribute(k, attrs[k]);
+			}
+			el.textContent = text;
+			return el;
+		},
         getCoord: function(params) {
-        	if (!this.grid) {
-		        return {'x': this.width*Math.random(),
-		        		'y': this.height*Math.random()
-	    	    	}
-			} else {
-				if (params['x'] && params['y']) {
+        	if (this.grid) {
+				if ((params['x'] != null) && (params['y'] != null)) {
 			        return {'x': params['x']*(this.grid['cellWidth'] + this.grid['rowGutter']),
 			        		'y': params['y']*(this.grid['cellHeight'] + this.grid['columnGutter'])
 		    	    	}
 				} else {
 					throw "Grid coordinates missing."
 				}
-    	    }
+    	    } else {
+		        return {'x': this.width*Math.random(),
+		        		'y': this.height*Math.random()
+	    	    }
+	    	}
+
         },
         getMeasure: function(val, type) {
         	if (!this.grid) {
@@ -60,6 +69,37 @@
         		}
         	}
         },
+        getFontSize: function(params) {
+        	return this.fontSize ? this.fontSize : params
+        },
+        getSVGFontStyle: function(params) {
+			let config = {
+				"font-size": params['fontSize'] ? params['fontSize'] : (this.fontSize ? this.fontSize : 10),
+				"text-align": "middle",
+				"alignment-baseline": "middle",
+				"text-anchor": "middle",
+				"opacity": "1.0",
+				"font-family": "Helvetica;sans-serif",
+				"font-weight": 300,
+				"letter-spacing": "0px"
+			}
+			return Object.keys(config).map(function(key) { return key + ":" + config[key]}).join(";")
+        },
+        getHTMLFontStyle: function(params, width, height) {
+			let config = {
+				"font-size": params['fontSize'] ? params['fontSize'] : (this.fontSize ? this.fontSize : 10),
+				"font-family": "Helvetica;sans-serif",
+				"display": "flex",
+				"align-items": "center",
+				"justify-content": "center",
+				"text-align": "center",
+				"width": width + "px",
+				"height": height + "px",				
+				"font-weight": 300,
+				"letter-spacing": "0px"
+			}
+			return Object.keys(config).map(function(key) { return key + ":" + config[key]}).join(";")
+        },
         // public
         setGrid: function(config) {
         	this.grid = {
@@ -67,7 +107,7 @@
         		columns: config['columns'],
         		columnGutter: 0,
         		rowGutter: 0,
-        		cellHeight: this.width/config['rows'],
+        		cellHeight: this.height/config['rows'],
         		cellWidth: this.width/config['columns']
         	}
             return this;
@@ -88,6 +128,18 @@
         	this.layout = layoutType;
         	return this;
         },
+        setColor: function(color) {
+        	this.color = color;
+        	return this;
+        },
+        setTextColor: function(color) {
+        	this.textColor = color;
+        	return this;
+        },
+        setFontSize: function(size) {
+        	this.fontSize = size;
+        	return this;
+        },
         circle: function(params) {
 			this.container.appendChild(this.addSVG("circle", params));
 			return this;
@@ -96,8 +148,13 @@
 			this.container.appendChild(this.addSVG("rect", params));
         	return this;
         },
-        text: function(params, text, domID) {
-			this.container.appendChild(addSVG('text', params)).appendChild(document.createTextNode(text))
+        text: function(params, text) {
+			this.container.appendChild(this.addSVG('text', params)).appendChild(document.createTextNode(text.toString()))
+			return this;
+		},
+		textBlock: function(params, text) {
+			this.container.appendChild(this.addSVG("foreignObject", params)).appendChild(this.addHTML('div', text, params));
+			// todo: support svg-only text pagination
 			return this;
 		},
         addCircle: function(params) {
@@ -114,16 +171,38 @@
         	return this;
         },
         addBlock: function(params) {
-        	let coord = this.getCoord(params)
+        	let coord = this.getCoord(params);
+        	let width = this.getMeasure(params['width'], 'width');
+        	let height = this.getMeasure(params['height'], 'height');
 			this.rect({
 				x: coord['x'],
 				y: coord['y'],
-				width: this.getMeasure(params['width'], 'width'),
-				height: this.getMeasure(params['height'], 'height'),
-				stroke: params['color'],
-				fill: params['color'],
-				style: "stroke-width:1;"
+				width: width,
+				height: height,
+				stroke: params['border'] ? params['border'] : this.color,
+				fill: params['fill'] ? params['fill'] : "none",
+				style: "stroke-width:1"
 			});	
+			let fontSize = this.getFontSize(params)
+			if (params['title'].length*fontSize < width) {
+				this.text( { 
+					x: coord['x'] + width/2,
+					y: coord['y'] + height/2,
+					"fill": this.textColor ? this.textColor : "#fff",
+					"style": this.getSVGFontStyle(params),
+					}, params['title']); 
+
+			} else {
+				this.textBlock( { 
+					x: coord['x'],
+					y: coord['y'],
+					width: width,
+					height: height,
+					"color": this.textColor ? this.textColor : "#fff",
+					"style": this.getHTMLFontStyle(params, width, height),
+					}, params['title']); 
+			}
+
         	return this;
         },
         setCallback: function(config, callback) {
