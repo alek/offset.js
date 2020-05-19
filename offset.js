@@ -42,7 +42,7 @@
             return this;
         },
         circle: function(params) {
-			document.getElementById("results").appendChild(this.addSVG("circle", params));
+			this.container.appendChild(this.addSVG("circle", params));
 			return this;
         },
         addCircle: function(params) {
