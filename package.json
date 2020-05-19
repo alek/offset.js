@@ -1,0 +1,23 @@
+{
+  "name": "offset.js",
+  "version": "1.0.0",
+  "description": "A simple set visualization library. No externam dependencies & data bindings. Just layout & event handing. ",
+  "main": "offset.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alek/offset.js.git"
+  },
+  "keywords": [
+    "svg",
+    "visualization"
+  ],
+  "author": "Aleksandar Bradic",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alek/offset.js/issues"
+  },
+  "homepage": "https://github.com/alek/offset.js#readme"
+}
