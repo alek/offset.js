@@ -1,5 +1,5 @@
 /*!
- * Offset.js: Simple SVG Set Visualization Library
+ * Offset.js: Simple SVG Layout Library
  * (c) 2020 Aleksandar Bradic
  *
  * Released under the MIT License.
@@ -10,6 +10,8 @@
     if(!global) {
         throw "Global Window object is not available.";
     }
+
+    // Block Diagram rendering
 
     var BlockDiagram = function(el, params) {
         return new BlockDiagram.init(el, params);
@@ -22,6 +24,7 @@
         self.width = params['width'];
         self.height = params['height'];
         self.blockMap = {}
+        self.objectIDs = []
     }
     
     BlockDiagram.prototype = {
@@ -112,17 +115,17 @@
         },
         getObjectID: function(type, title) {
         	if (!Array.isArray(title)) {
-	        	return type + "-" + this.objectHash(title);
+	        	return type + ";" + this.objectHash(title);
 	        } else {
 	        	var key = []
 	        	for (var i=0; i<title.length; i++) {
 	        		key.push(this.objectHash(title[i]))
 	        	}
-	        	return type + "-" + key.join(";")
+	        	return type + ";" + key.join(";")
 	        }
         },
         getWireTitle: function(entries) {
-        	return entries.sort().join("-");
+        	return entries.sort().join(";");
         },
         findObjects: function(params) {
         	var results = []        
@@ -223,6 +226,7 @@
 				style: "stroke-width:1",
 				id: this.getObjectID("block", params['title'])
 			});	
+			this.objectIDs.push(this.getObjectID("block", params['title']))
 
 			var fontSize = this.getFontSize(params);
 			if (params['title'].length*fontSize < width) {
@@ -244,6 +248,7 @@
 					id: this.getObjectID("text", params['title'])
 					}, params['title']); 
 			}
+			this.objectIDs.push(this.getObjectID("text", params['title']))
 
         	this.blockMap[params["title"]] = {
         		"coord": coord,
@@ -277,6 +282,7 @@
 				"stroke": this.color ? this.color : "#fff",
 				id: this.getObjectID("path", [params["start"],params["end"]])
 			})
+			this.objectIDs.push(this.getObjectID("path", [params["start"],params["end"]]))
 			return this;
         },
         toggleBlock(params) {
@@ -285,10 +291,8 @@
         	if (fill === "none") {
 	        	el.setAttribute("fill", this.color);
 	        	el.setAttribute("fill-opacity", params["opacity"] ? params["opacity"] : 1.0);
-	        	el.setAttribute("stroke", null);
         	} else {
 	        	el.setAttribute("fill", null);
-	        	el.setAttribute("stroke", this.color);
         	}
         	return this;
         },
@@ -297,6 +301,32 @@
         	var width = el.getAttribute("stroke-width");
         	if (width == 1) {
         		el.setAttribute("stroke-width", 2);
+        	}
+        },
+        setInteractive: function() {
+        	for (var i=0; i<this.objectIDs.length; i++) {
+        		var el = document.getElementById(this.objectIDs[i]);
+        		var id = el.getAttribute("id")
+        		var type = id.split(";")[0]
+        		if (type === "path") {
+	        		el.addEventListener("mouseover", function(event) {
+	        			this.setAttribute("stroke-width", 3)
+	        		});
+	        		el.addEventListener("mouseout", function(event) {
+	        			this.setAttribute("stroke-width", 1)
+	        		});
+        		} else if (type === "text") {
+	        		el.addEventListener("mouseover", function(event) {
+				        var id = this.getAttribute("id")
+				        var block = document.getElementById("block;" + id.split(";")[1])
+				        if (block) { block.setAttribute("fill", "rgba(255,255,255,0.1)") }        				
+	        		});
+	        		el.addEventListener("mouseout", function(event) {
+				        var id = this.getAttribute("id")
+				        var block = document.getElementById("block;" + id.split(";")[1])
+				        if (block) { block.setAttribute("fill", "none") }        				
+	        		});
+        		}
         	}
         },
         setHandler: function(params, eventType, callback) {
