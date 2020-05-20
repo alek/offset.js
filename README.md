@@ -8,8 +8,14 @@ No external dependencies, no data bindings. Layout & event handling only.
 
 ### Sample Usage ###
 
+*Include the script*
 ```js
 <script src="https://cdn.jsdelivr.net/gh/alek/offset.js@master/offset.js"></script>
+```
+
+*Create the target container*
+```html
+<svg id="results" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="960" height="540"></
 ```
 
 #### Grid-based Manual Routing ####
