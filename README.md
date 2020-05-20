@@ -1,4 +1,4 @@
 # offset.js
 
-Simple SVG-based set visualization library. 
+Simple SVG layout library for block diagram & set container visualization.
 No external dependencies, no data bindings. Layout & event handling only. 
