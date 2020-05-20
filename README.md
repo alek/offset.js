@@ -8,6 +8,10 @@ No external dependencies, no data bindings. Layout & event handling only.
 
 ### Sample Usage ###
 
+```js
+<script src="https://cdn.jsdelivr.net/gh/alek/offset.js@master/offset.js"></script>
+```
+
 #### Grid-based Manual Routing ####
 
 ```js
