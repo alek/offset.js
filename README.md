@@ -18,8 +18,6 @@ No external dependencies, no data bindings. Layout & event handling only.
 <svg id="results" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="960" height="540"></
 ```
 
-*Draw something*
-
 #### Grid-based Manual Routing ####
 
 ```js
