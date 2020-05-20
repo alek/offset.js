@@ -11,11 +11,11 @@
         throw "Global Window object is not available.";
     }
 
-    var SetGraph = function(el, params) {
-        return new SetGraph.init(el, params);
+    var BlockDiagram = function(el, params) {
+        return new BlockDiagram.init(el, params);
     }
 
-    SetGraph.init = function(el, params) {
+    BlockDiagram.init = function(el, params) {
         var self = this;
         self.container = document.getElementById(el);
         self.anchor = {x: params['x'], y: params['y']};
@@ -24,7 +24,7 @@
         self.blockMap = {}
     }
     
-    SetGraph.prototype = {
+    BlockDiagram.prototype = {
 
     	// -- internal functions --- 
 		
@@ -72,10 +72,10 @@
         	}
         },
         getFontSize: function(params) {
-        	return this.fontSize ? this.fontSize : params
+        	return this.fontSize ? this.fontSize : params;
         },
         getSVGFontStyle: function(params) {
-			let config = {
+			var config = {
 				"font-size": params['fontSize'] ? params['fontSize'] : (this.fontSize ? this.fontSize : 10),
 				"text-align": "middle",
 				"alignment-baseline": "middle",
@@ -85,10 +85,10 @@
 				"font-weight": 300,
 				"letter-spacing": "0px"
 			}
-			return Object.keys(config).map(function(key) { return key + ":" + config[key]}).join(";")
+			return Object.keys(config).map(function(key) { return key + ":" + config[key]}).join(";");
         },
         getHTMLFontStyle: function(params, width, height) {
-			let config = {
+			var config = {
 				"font-size": params['fontSize'] ? params['fontSize'] : (this.fontSize ? this.fontSize : 10),
 				"font-family": "Helvetica;sans-serif",
 				"display": "flex",
@@ -100,7 +100,7 @@
 				"font-weight": 300,
 				"letter-spacing": "0px"
 			}
-			return Object.keys(config).map(function(key) { return key + ":" + config[key]}).join(";")
+			return Object.keys(config).map(function(key) { return key + ":" + config[key]}).join(";");
         },
         objectHash: function(s) {
 			  var h = 0, l = s.length, i = 0;
@@ -111,12 +111,29 @@
 			  return h;
         },
         getObjectID: function(type, title) {
-        	return type + "-" + this.objectHash(title)
+        	if (!Array.isArray(title)) {
+	        	return type + "-" + this.objectHash(title);
+	        } else {
+	        	var key = []
+	        	for (var i=0; i<title.length; i++) {
+	        		key.push(this.objectHash(title[i]))
+	        	}
+	        	return type + "-" + key.join(";")
+	        }
         },
         getWireTitle: function(entries) {
-        	return entries.sort().join("-")
+        	return entries.sort().join("-");
         },
-
+        findObjects: function(params) {
+        	var results = []        
+        	if (params["start"] && params["end"]) {
+        		results.push(document.getElementById(this.getObjectID("path", [params["start"],params["end"]])))
+			} else {
+				results.push(document.getElementById(this.getObjectID("text", params["title"])))	
+        		results.push(document.getElementById(this.getObjectID("block", params["title"])));
+			}
+			return results;
+        },
         // --- public functions --- 
 
         setGrid: function(config) {
@@ -171,7 +188,7 @@
         	return this;
         },
         text: function(params, text) {
-			this.container.appendChild(this.addSVG('text', params)).appendChild(document.createTextNode(text.toString()))
+			this.container.appendChild(this.addSVG('text', params)).appendChild(document.createTextNode(text.toString()));
 			return this;
 		},
 		textBlock: function(params, text) {
@@ -180,7 +197,7 @@
 			return this;
 		},
         addCircle: function(params) {
-	        let coord = this.getCoord(params)
+	        var coord = this.getCoord(params)
         	this.circle({
         		cx: coord['x'],
         		cy: coord['y'],
@@ -193,9 +210,9 @@
         	return this;
         },
         addBlock: function(params) {
-        	let coord = this.getCoord(params);
-        	let width = this.getMeasure(params['width'], 'width');
-        	let height = this.getMeasure(params['height'], 'height');
+        	var coord = this.getCoord(params);
+        	var width = this.getMeasure(params['width'], 'width');
+        	var height = this.getMeasure(params['height'], 'height');
 			this.rect({
 				x: coord['x'],
 				y: coord['y'],
@@ -206,15 +223,16 @@
 				style: "stroke-width:1",
 				id: this.getObjectID("block", params['title'])
 			});	
-			let fontSize = this.getFontSize(params)
+
+			var fontSize = this.getFontSize(params);
 			if (params['title'].length*fontSize < width) {
 				this.text( { 
 					x: coord['x'] + width/2,
 					y: coord['y'] + height/2,
 					"fill": this.textColor ? this.textColor : "#fff",
 					"style": this.getSVGFontStyle(params),
+					id: this.getObjectID("text", params['title'])
 					}, params['title']); 
-
 			} else {
 				this.textBlock( { 
 					x: coord['x'],
@@ -223,6 +241,7 @@
 					height: height,
 					"color": this.textColor ? this.textColor : "#fff",
 					"style": this.getHTMLFontStyle(params, width, height),
+					id: this.getObjectID("text", params['title'])
 					}, params['title']); 
 			}
 
@@ -236,57 +255,58 @@
         	return this;
         },
         addWire: function(params) {
-        	let coords = []
+        	var coords = []
         	if (params["path"]) {	
         		if (this.grid) {
         			for (var i=0; i<params["path"].length; i++) {
-        				let el = params["path"][i]
-        				coords.push([this.getMeasure(el[0],"width"), this.getMeasure(el[1], "height")])
+        				var el = params["path"][i];
+        				coords.push([this.getMeasure(el[0],"width"), this.getMeasure(el[1], "height")]);
         			}
         		} else {
-        			coords = params["path"]
+        			coords = params["path"];
         		}
         	} else {	
-	        	let start = this.blockMap[params["start"]]['center']
-	        	let end = this.blockMap[params["end"]]['center']
-	        	coords = [[start['x'], start['y']], [end['x'], end['y']]]
+	        	var start = this.blockMap[params["start"]]['center'];
+	        	var end = this.blockMap[params["end"]]['center'];
+	        	coords = [[start['x'], start['y']], [end['x'], end['y']]];
 			}
 			this.path( {
 				d: "M" + coords.map(function(x) { return x.join(" ")}).join(" L") + "",
 				"stroke-width": 1,
 				"fill": "none",
 				"stroke": this.color ? this.color : "#fff",
-				id: this.getObjectID("path", this.getWireTitle([params["start"],params["end"]]))
+				id: this.getObjectID("path", [params["start"],params["end"]])
 			})
 			return this;
         },
         toggleBlock(params) {
-        	let el = document.getElementById(this.getObjectID("block", params["title"]))
-        	let fill = el.getAttribute("fill")
+        	var el = document.getElementById(this.getObjectID("block", params["title"]));
+        	var fill = el.getAttribute("fill");
         	if (fill === "none") {
-	        	el.setAttribute("fill", this.color)
-	        	el.setAttribute("fill-opacity", params["opacity"] ? params["opacity"] : 1.0)
-	        	el.setAttribute("stroke", null)
+	        	el.setAttribute("fill", this.color);
+	        	el.setAttribute("fill-opacity", params["opacity"] ? params["opacity"] : 1.0);
+	        	el.setAttribute("stroke", null);
         	} else {
-	        	el.setAttribute("fill", null)
-	        	el.setAttribute("stroke", this.color)
+	        	el.setAttribute("fill", null);
+	        	el.setAttribute("stroke", this.color);
         	}
         	return this;
         },
         toggleWire(params) {
-        	let el = document.getElementById(this.getObjectID("path", this.getWireTitle([params["start"],params["end"]])))
-        	let width = el.getAttribute("stroke-width")
+        	var el = document.getElementById(this.getObjectID("path", [params["start"],params["end"]]));
+        	var width = el.getAttribute("stroke-width");
         	if (width == 1) {
-        		el.setAttribute("stroke-width", 2)
+        		el.setAttribute("stroke-width", 2);
         	}
-
         },
-        setCallback: function(config, callback) {
+        setHandler: function(params, eventType, callback) {
+        	var objects = this.findObjects(params);
+        	objects.map(function(el) { if (el != null) { el.addEventListener(eventType, callback) } })
         	return this;
         }
     };
     
-    SetGraph.init.prototype = SetGraph.prototype;
-    global.SetGraph = SetGraph;
+    BlockDiagram.init.prototype = BlockDiagram.prototype;
+    global.BlockDiagram = BlockDiagram;
 
 }(window));
