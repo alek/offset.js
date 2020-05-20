@@ -6,8 +6,9 @@ No external dependencies, no data bindings. Layout & event handling only.
 
 *Work in progress, please come back later.*
 
-#### Sample Usage ####
+### Sample Usage ###
 
+#### Grid-based Manual Routing ####
 
 ```js
       var graph = BlockDiagram("results", {width: 960, height: 540})
