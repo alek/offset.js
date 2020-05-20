@@ -4,7 +4,7 @@ Simple grid-based SVG layout library. Ideal for block diagram rendering & genera
 
 No external dependencies, no data bindings. Layout & event handling only. 
 
-*Work in progress, please come back later*
+*Work in progress, please come back later.*
 
 #### Usage ####
 
