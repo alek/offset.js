@@ -30,5 +30,5 @@ No external dependencies, no data bindings. Layout & event handling only.
       graph.addWire({"path": [[14,7], [15,7], [15,9], [16,9] ]})
       graph.addWire({"path": [[14,14], [18,14], [18,13]]})
 ```
-Output:
+*Output:*
 ![Output](https://user-images.githubusercontent.com/54517/82421251-98757480-9a35-11ea-8949-0985955572bb.png)
