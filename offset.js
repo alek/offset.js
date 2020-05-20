@@ -25,7 +25,9 @@
     }
     
     SetGraph.prototype = {
-    	// internal 
+
+    	// -- internal functions --- 
+		
 		addSVG: function(tag, attrs) {	
 			var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
 			for (var k in attrs) {
@@ -100,15 +102,23 @@
 			}
 			return Object.keys(config).map(function(key) { return key + ":" + config[key]}).join(";")
         },
-        getLineStyle: function(params) {
-        	let config = {
-        		"fill": "none",
-        		"stroke": this.color ? this.color : "#fff",
-        		"stroke-width": 1
-        	}
-			return Object.keys(config).map(function(key) { return key + ":" + config[key]}).join(";")
+        objectHash: function(s) {
+			  var h = 0, l = s.length, i = 0;
+			  if ( l > 0 )
+			    while (i < l) {
+			      h = (h << 5) - h + s.charCodeAt(i++) | 0;
+			    }
+			  return h;
         },
-        // public
+        getObjectID: function(type, title) {
+        	return type + "-" + this.objectHash(title)
+        },
+        getWireTitle: function(entries) {
+        	return entries.sort().join("-")
+        },
+
+        // --- public functions --- 
+
         setGrid: function(config) {
         	this.grid = {
         		rows: config['rows'],
@@ -193,7 +203,8 @@
 				height: height,
 				stroke: params['border'] ? params['border'] : this.color,
 				fill: params['fill'] ? params['fill'] : "none",
-				style: "stroke-width:1"
+				style: "stroke-width:1",
+				id: this.getObjectID("block", params['title'])
 			});	
 			let fontSize = this.getFontSize(params)
 			if (params['title'].length*fontSize < width) {
@@ -242,8 +253,33 @@
 			}
 			this.path( {
 				d: "M" + coords.map(function(x) { return x.join(" ")}).join(" L") + "",
-				style: this.getLineStyle(params)
+				"stroke-width": 1,
+				"fill": "none",
+				"stroke": this.color ? this.color : "#fff",
+				id: this.getObjectID("path", this.getWireTitle([params["start"],params["end"]]))
 			})
+			return this;
+        },
+        toggleBlock(params) {
+        	let el = document.getElementById(this.getObjectID("block", params["title"]))
+        	let fill = el.getAttribute("fill")
+        	if (fill === "none") {
+	        	el.setAttribute("fill", this.color)
+	        	el.setAttribute("fill-opacity", params["opacity"] ? params["opacity"] : 1.0)
+	        	el.setAttribute("stroke", null)
+        	} else {
+	        	el.setAttribute("fill", null)
+	        	el.setAttribute("stroke", this.color)
+        	}
+        	return this;
+        },
+        toggleWire(params) {
+        	let el = document.getElementById(this.getObjectID("path", this.getWireTitle([params["start"],params["end"]])))
+        	let width = el.getAttribute("stroke-width")
+        	if (width == 1) {
+        		el.setAttribute("stroke-width", 2)
+        	}
+
         },
         setCallback: function(config, callback) {
         	return this;
