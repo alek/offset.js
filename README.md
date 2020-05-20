@@ -13,9 +13,9 @@ No external dependencies, no data bindings. Layout & event handling only.
       var graph = BlockDiagram("results", {width: 960, height: 540})
                       .setGrid({rows: 18, columns: 30})
                       .setLayout("grid")
-                      .setBackground({color: "#161638"})
+                      .setBackground({color: "#F6F8FA"})
                       .setColor("#7748B0")
-                      .setTextColor("#FFF")
+                      .setTextColor("#7748B0")
                       .setFontSize(14);
 
       graph.addBlock({x: 10, y: 5, width: 4, height: 4, title: "Random Title One"})
