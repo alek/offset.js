@@ -21,6 +21,7 @@
         self.anchor = {x: params['x'], y: params['y']};
         self.width = params['width'];
         self.height = params['height'];
+        self.blockMap = {}
     }
     
     SetGraph.prototype = {
@@ -54,7 +55,6 @@
 		        		'y': this.height*Math.random()
 	    	    }
 	    	}
-
         },
         getMeasure: function(val, type) {
         	if (!this.grid) {
@@ -98,6 +98,14 @@
 				"font-weight": 300,
 				"letter-spacing": "0px"
 			}
+			return Object.keys(config).map(function(key) { return key + ":" + config[key]}).join(";")
+        },
+        getLineStyle: function(params) {
+        	let config = {
+        		"fill": "none",
+        		"stroke": "#fff",
+        		"stroke-width": 1
+        	}
 			return Object.keys(config).map(function(key) { return key + ":" + config[key]}).join(";")
         },
         // public
@@ -146,6 +154,10 @@
         },
         rect: function(params) {
 			this.container.appendChild(this.addSVG("rect", params));
+        	return this;
+        },
+        path: function(params) {
+			this.container.appendChild(this.addSVG("path", params));
         	return this;
         },
         text: function(params, text) {
@@ -203,7 +215,35 @@
 					}, params['title']); 
 			}
 
+        	this.blockMap[params["title"]] = {
+        		"coord": coord,
+        		"width": width,
+        		"height": height,
+        		"center": {'x': coord['x'] + width/2, 'y': coord['y'] + height/2}
+        	}
+
         	return this;
+        },
+        addWire: function(params) {
+        	let coords = []
+        	if (params["path"]) {	
+        		if (this.grid) {
+        			for (var i=0; i<params["path"].length; i++) {
+        				let el = params["path"][i]
+        				coords.push([this.getMeasure(el[0],"width"), this.getMeasure(el[1], "height")])
+        			}
+        		} else {
+        			coords = params["path"]
+        		}
+        	} else {	
+	        	let start = this.blockMap[params["start"]]['center']
+	        	let end = this.blockMap[params["end"]]['center']
+	        	coords = [[start['x'], start['y']], [end['x'], end['y']]]
+			}
+			this.path( {
+				d: "M" + coords.map(function(x) { return x.join(" ")}).join(" L") + "",
+				style: this.getLineStyle(params)
+			})
         },
         setCallback: function(config, callback) {
         	return this;
