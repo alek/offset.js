@@ -106,12 +106,13 @@
 			return Object.keys(config).map(function(key) { return key + ":" + config[key]}).join(";");
         },
         objectHash: function(s) {
-			  var h = 0, l = s.length, i = 0;
-			  if ( l > 0 )
-			    while (i < l) {
-			      h = (h << 5) - h + s.charCodeAt(i++) | 0;
-			    }
-			  return h;
+        	if (s == null) { return "" }
+			var h = 0, l = s.length, i = 0;
+			if ( l > 0 )
+				while (i < l) {
+					h = (h << 5) - h + s.charCodeAt(i++) | 0;
+				}
+			return h;
         },
         getObjectID: function(type, title) {
         	if (!Array.isArray(title)) {
@@ -184,6 +185,10 @@
         },
         rect: function(params) {
 			this.container.appendChild(this.addSVG("rect", params));
+        	return this;
+        },
+        line: function(params) {
+			this.container.appendChild(this.addSVG("line", params));
         	return this;
         },
         path: function(params) {
@@ -302,6 +307,27 @@
         	if (width == 1) {
         		el.setAttribute("stroke-width", 2);
         	}
+        	return this;
+        },
+        showGrid(opacity) {
+        	if (!opacity) { opacity = 1.0 }
+        	if (this.grid) {
+        		for (var i=0; i<this.grid['columns']; i++) {
+					this.line({
+						x1: i*(this.grid['cellWidth'] + this.grid['columnGutter']), y1: 0,
+						x2: i*(this.grid['cellWidth'] + this.grid['columnGutter']), y2: this.height,
+						stroke: "rgba(255,255,255," + opacity + ")", "stroke-width": 1
+					});
+        		}
+    			for (var i=0; i<this.grid['columns']; i++) {
+					this.line({
+						x1: 0, y1: i*(this.grid['cellHeight'] + this.grid['rowGutter']), 
+						x2: this.width,  y2: i*(this.grid['cellHeight'] + this.grid['rowGutter']),
+						stroke: "rgba(255,255,255," + opacity + ")", "stroke-width": 1
+					});
+    			}
+        	}
+        	return this;
         },
         setInteractive: function() {
         	for (var i=0; i<this.objectIDs.length; i++) {
