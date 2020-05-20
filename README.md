@@ -6,7 +6,7 @@ No external dependencies, no data bindings. Layout & event handling only.
 
 *Work in progress, please come back later.*
 
-#### Usage ####
+#### Sample Usage ####
 
 
 ```js
