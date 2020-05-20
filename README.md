@@ -1,13 +1,14 @@
 # offset.js
 
-Simple grid-based SVG layout library. Ideal for block diagram rendering & general-purpose set visualization.
+Simple grid-based SVG layout library. Ideal for no-frills block diagram rendering & set visualization.
 
 No external dependencies, no data bindings. Layout & event handling only. 
 
 *Work in progress, please come back later.*
 
-#### Usage ####
+### Sample Usage ###
 
+#### Grid-based Manual Routing ####
 
 ```js
       var graph = BlockDiagram("results", {width: 960, height: 540})
