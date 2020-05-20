@@ -290,6 +290,19 @@
 			this.objectIDs.push(this.getObjectID("path", [params["start"],params["end"]]))
 			return this;
         },
+        enableBlock(params) {
+        	var el = document.getElementById(this.getObjectID("block", params["title"]));
+        	var fill = el.getAttribute("fill");
+        	el.setAttribute("fill", this.color);
+        	el.setAttribute("fill-opacity", params["opacity"] ? params["opacity"] : 1.0);
+        	return this;
+        },
+        disableBlock(params) {
+        	var el = document.getElementById(this.getObjectID("block", params["title"]));
+        	var fill = el.getAttribute("fill");
+			el.setAttribute("fill", null);
+        	return this;
+        },
         toggleBlock(params) {
         	var el = document.getElementById(this.getObjectID("block", params["title"]));
         	var fill = el.getAttribute("fill");
