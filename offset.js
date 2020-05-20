@@ -103,7 +103,7 @@
         getLineStyle: function(params) {
         	let config = {
         		"fill": "none",
-        		"stroke": "#fff",
+        		"stroke": this.color ? this.color : "#fff",
         		"stroke-width": 1
         	}
 			return Object.keys(config).map(function(key) { return key + ":" + config[key]}).join(";")
