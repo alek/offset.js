@@ -196,11 +196,7 @@
         		return d2 - d1
         	}
         },
-        mazeRouter: function(start, end) {
-        	
-			var startNode = start[0]
-			var endNode = end[0]        	
-
+        mazeRouter: function(startNode, endNode) {
 			var queue = [startNode]
 			var path = []
 			var visited = {}
@@ -221,11 +217,23 @@
 						queue.push(neigh[i])
 					}
 				}
-				if (path.length > 50) {
+				if (path.length > 100) {
 					break
 				}
 			}
 			return path.map(function(el) { return [el['x'], el['y']] })
+        },
+        getRoute: function(startPads, endPads) {
+			var bestPath = null
+			for (var i=0; i<startPads.length; i++) {
+				for (var j=0; j<endPads.length; j++) {
+					var path = this.mazeRouter(startPads[i], endPads[j]);
+					if (bestPath == null || path.length < bestPath.length) {
+						bestPath = path;
+					}
+				}
+			}
+			return bestPath;
         },
 
         // --- public functions --- 
@@ -384,7 +392,7 @@
         	} else {	// autorouter
 	        	var start = this.blockMap[params["start"]]['pads'];
 	        	var end = this.blockMap[params["end"]]['pads'];
-	        	coords = this.mazeRouter(start, end)
+	        	coords = this.getRoute(start, end)
 			}
 			this.path( {
 				d: "M" + coords.map(function(x) { return x.join(" ")}).join(" L") + "",
