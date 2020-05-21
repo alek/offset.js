@@ -176,6 +176,7 @@
         	return (coord.x > 0) && (coord.y > 0) && (coord.x < this.width) && (coord.y < this.height)        	
         },
         getFreeNeighbors: function(coord) {
+            // shoot far & backtrack
         	var candidates = [
         		{x: coord.x + this.grid.cellWidth/2, y: coord.y},
         		{x: coord.x - this.grid.cellWidth/2, y: coord.y},
@@ -191,7 +192,7 @@
         	return result;
         },
         getDistance: function(node1, node2) {
-        	return Math.sqrt(Math.pow(node1.x - node2.x,2) + Math.pow(node1.y - node2.y,2));
+            return Math.abs(node1.x - node2.x) + Math.abs(node1.y - node2.y)
         },
         distanceSort: function(target) {
         	return function(a, b) {
