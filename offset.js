@@ -154,14 +154,15 @@
         },
         isOccupied: function(coord) {
         	if (this.grid) {
-        		var gridX = Math.floor(coord['x']/(this.grid.cellWidth+this.grid.columnGutter))
-        		var gridY = Math.floor(coord['y']/(this.grid.cellHeight+this.grid.rowGutter))
-        		if (this.grid.matrix[gridX][gridY]) {
-        			return true;
-        		} else {
-        			var gridY = Math.floor((coord['y']-1)/(this.grid.cellHeight+this.grid.rowGutter))
-        			return this.grid.matrix[gridX][gridY]
+        		var delta = [[1,0],[-1,0], [0,1], [0,-1], [1, 1], [1, -1], [-1, 1], [-1, -1]]
+        		for (var i=0; i<delta.length; i++) {
+	        		var gridX = Math.floor((coord['x']+delta[i][0])/(this.grid.cellWidth+this.grid.columnGutter))
+	        		var gridY = Math.floor((coord['y']+delta[i][1])/(this.grid.cellHeight+this.grid.rowGutter))        			
+	        		if (this.grid.matrix[gridX][gridY]) {
+	        			return true;
+	        		}
         		}
+        		return false;
         	} else {
         		// todo: support grid-free inference
         		return false;
@@ -185,9 +186,19 @@
         	}
         	return result
         },
-        mazeRouter: function(start, end) {	// work in progress
+        getDistance: function(node1, node2) {
+        	return Math.sqrt(Math.pow(node1['x'] - node2['x'],2) + Math.pow(node1['y'] - node2['y'],2))
+        },
+        distanceSort: function(target) {
+        	return function(a, b) {
+        		var d1 = Math.sqrt(Math.pow(a['x'] - target['x'],2) + Math.pow(a['y'] - target['y'],2))
+        		var d2 = Math.sqrt(Math.pow(b['x'] - target['x'],2) + Math.pow(b['y'] - target['y'],2))
+        		return d2 - d1
+        	}
+        },
+        mazeRouter: function(start, end) {
         	
-			var startNode = start[0]	//todo: pick the best connector
+			var startNode = start[0]
 			var endNode = end[0]        	
 
 			var queue = [startNode]
@@ -196,20 +207,24 @@
 
 			while(queue.length > 0) {
 				var el = queue.pop()
-
 				path.push(el)
+				var distance = this.getDistance(el, endNode)
+				if (distance < this.grid.cellWidth) {
+					path.push(endNode)
+					break
+				}
 				var neigh = this.getFreeNeighbors(el)
+				neigh = neigh.sort(this.distanceSort(endNode))
 				for (var i=0; i<neigh.length; i++) {
 					if (!visited[this.getJSONHash(neigh[i])]) {
 						visited[this.getJSONHash(el)] = true
 						queue.push(neigh[i])
 					}
 				}
-				if (path.length > 200) {
+				if (path.length > 50) {
 					break
 				}
 			}
-			// path.push(endNode)
 			return path.map(function(el) { return [el['x'], el['y']] })
         },
 
