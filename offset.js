@@ -205,7 +205,7 @@
 				var el = queue.pop()
 				path.push(el)
 				var distance = this.getDistance(el, endNode)
-				if (distance < this.grid.cellWidth) {
+				if (distance < this.grid.cellWidth/2) {
 					path.push(endNode)
 					break
 				}
