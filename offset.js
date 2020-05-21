@@ -152,15 +152,19 @@
         	}
         	return result;
         },
-        isOccupied: function(coord) {
+        isOccupied: function(coord) {   // absolute coordinate addressing
         	if (this.grid) {
         		var delta = [[1,0],[-1,0], [0,1], [0,-1], [1, 1], [1, -1], [-1, 1], [-1, -1]]
         		for (var i=0; i<delta.length; i++) {
-	        		var gridX = Math.floor((coord['x']+delta[i][0])/(this.grid.cellWidth+this.grid.columnGutter))
-	        		var gridY = Math.floor((coord['y']+delta[i][1])/(this.grid.cellHeight+this.grid.rowGutter))        			
-	        		if (this.grid.matrix[gridX][gridY]) {
-	        			return true;
-	        		}
+                    var xPos = coord['x']+delta[i][0]
+                    var yPos = coord['y']+delta[i][1]
+                    if (this.isWithinBounds({x: xPos, y: yPos})) {
+	        		     var gridX = Math.floor(xPos/(this.grid.cellWidth+this.grid.columnGutter))
+	        		     var gridY = Math.floor(yPos/(this.grid.cellHeight+this.grid.rowGutter))
+	        		     if (this.grid.matrix[gridX][gridY]) {
+	        			    return true;
+    	        		 }
+                    }
         		}
         		return false;
         	} else {
@@ -251,6 +255,7 @@
             return this;
         },
         updateGridAllocation: function(params) {
+            // console.log(params)
         	if (this.grid) {
         		for (var x=params['x']; x < params['x'] + params['width']; x++) {
         			for (var y=params['y']; y < params['y'] + params['height']; y++) {
@@ -326,22 +331,62 @@
 			});
         	return this;
         },
+        placeBlock: function(params) {
+
+            var result = null;
+            var attemptCount = 0;
+
+            while (!result) {
+                var coord = {
+                    x: Math.ceil(Math.random()*(1 + this.grid.columns - params['width'] - 2)),
+                    y: Math.ceil(Math.random()*(1 + this.grid.rows - params['height'] - 2))
+                }
+                var freeSpace = true;
+                for (var i=0; i<params['width']; i++) {
+                    for (var j=0; j<params['height']; j++) {
+                        if (this.grid.matrix[coord.x + i][coord.y + j]) {
+                            freeSpace = false;
+                        }
+                    }
+                }
+                if (freeSpace) {
+                    result = coord;
+                    break;    
+                }
+                
+                if (++attemptCount > 10) {
+                    throw "No space available";
+                }
+            }
+            
+            return result;
+        },
         addBlock: function(params) {
-        	var coord = this.getCoord(params);
-        	var width = this.getMeasure(params['width'], 'width');
-        	var height = this.getMeasure(params['height'], 'height');
-			this.rect({
-				x: coord['x'],
-				y: coord['y'],
-				width: width,
-				height: height,
-				stroke: params['border'] ? params['border'] : this.color,
-				fill: params['fill'] ? params['fill'] : "none",
-				style: "stroke-width:1",
-				id: this.getObjectID("block", params['title'])
-			});	
-			this.objectIDs.push(this.getObjectID("block", params['title']));
-			this.updateGridAllocation(params);
+
+            var width = this.getMeasure(params['width'], 'width');
+            var height = this.getMeasure(params['height'], 'height');
+
+            if (params['x'] && params['y']) {
+                var coord = this.getCoord(params);
+            } else {    
+                var target = this.placeBlock(params)
+                params['x'] = target['x'];
+                params['y'] = target['y'];
+                var coord = this.getCoord(target)
+            }
+
+            this.rect({
+                x: coord['x'],
+                y: coord['y'],
+                width: width,
+                height: height,
+                stroke: params['border'] ? params['border'] : this.color,
+                fill: params['fill'] ? params['fill'] : "none",
+                style: "stroke-width:1",
+                id: this.getObjectID("block", params['title'])
+            }); 
+            this.objectIDs.push(this.getObjectID("block", params['title']));
+            this.updateGridAllocation(params);
 
 			var fontSize = this.getFontSize(params);
 			if (params['title'].length*fontSize < width) {
