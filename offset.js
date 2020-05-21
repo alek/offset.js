@@ -125,6 +125,9 @@
 	        	return type + ";" + key.join(";")
 	        }
         },
+        getJSONHash: function(el) {
+        	return this.objectHash(JSON.stringify(el));
+        },
         getWireTitle: function(entries) {
         	return entries.sort().join(";");
         },
@@ -138,6 +141,78 @@
 			}
 			return results;
         },
+        getGridMatrix: function(width, height) {
+        	var result = [];
+        	for (var i=0; i<width; i++) {
+        		var array = []
+        		for (var j=0; j<height; j++) {
+        			array.push(false)
+        		}
+        		result.push(array)
+        	}
+        	return result;
+        },
+        isOccupied: function(coord) {
+        	if (this.grid) {
+        		var gridX = Math.floor(coord['x']/(this.grid.cellWidth+this.grid.columnGutter))
+        		var gridY = Math.floor(coord['y']/(this.grid.cellHeight+this.grid.rowGutter))
+        		if (this.grid.matrix[gridX][gridY]) {
+        			return true;
+        		} else {
+        			var gridY = Math.floor((coord['y']-1)/(this.grid.cellHeight+this.grid.rowGutter))
+        			return this.grid.matrix[gridX][gridY]
+        		}
+        	} else {
+        		// todo: support grid-free inference
+        		return false;
+        	}
+        },
+        isWithinBounds: function(coord) {
+        	return (coord['x'] > 0) && (coord['y'] > 0) && (coord['x'] < this.width) && (coord['y'] < this.height)        	
+        },
+        getFreeNeighbors: function(coord) {
+        	var candidates = [
+        		{'x': coord['x'] + this.grid.cellWidth/2, 'y': coord['y']},
+        		{'x': coord['x'] - this.grid.cellWidth/2, 'y': coord['y']},
+        		{'x': coord['x'], 'y': coord['y'] + this.grid.cellHeight/2},
+        		{'x': coord['x'], 'y': coord['y'] - this.grid.cellHeight/2},
+        	]
+        	var result = []
+        	for (var i=0; i<candidates.length; i++) {
+        		if (!this.isOccupied(candidates[i]) && this.isWithinBounds(candidates[i])) {
+        			result.push(candidates[i])
+        		} 
+        	}
+        	return result
+        },
+        mazeRouter: function(start, end) {	// work in progress
+        	
+			var startNode = start[0]	//todo: pick the best connector
+			var endNode = end[0]        	
+
+			var queue = [startNode]
+			var path = []
+			var visited = {}
+
+			while(queue.length > 0) {
+				var el = queue.pop()
+
+				path.push(el)
+				var neigh = this.getFreeNeighbors(el)
+				for (var i=0; i<neigh.length; i++) {
+					if (!visited[this.getJSONHash(neigh[i])]) {
+						visited[this.getJSONHash(el)] = true
+						queue.push(neigh[i])
+					}
+				}
+				if (path.length > 200) {
+					break
+				}
+			}
+			// path.push(endNode)
+			return path.map(function(el) { return [el['x'], el['y']] })
+        },
+
         // --- public functions --- 
 
         setGrid: function(config) {
@@ -147,9 +222,20 @@
         		columnGutter: 0,
         		rowGutter: 0,
         		cellHeight: this.height/config['rows'],
-        		cellWidth: this.width/config['columns']
+        		cellWidth: this.width/config['columns'],
+        		matrix: this.getGridMatrix(config['columns'], config['rows'])
         	}
             return this;
+        },
+        updateGridAllocation: function(params) {
+        	if (this.grid) {
+        		for (var x=params['x']; x < params['x'] + params['width']; x++) {
+        			for (var y=params['y']; y < params['y'] + params['height']; y++) {
+        				this.grid.matrix[x][y] = true
+        			}
+        		}
+        	}
+        	return this;
         },
         setBackground: function(params) {
 			this.rect({
@@ -231,7 +317,8 @@
 				style: "stroke-width:1",
 				id: this.getObjectID("block", params['title'])
 			});	
-			this.objectIDs.push(this.getObjectID("block", params['title']))
+			this.objectIDs.push(this.getObjectID("block", params['title']));
+			this.updateGridAllocation(params);
 
 			var fontSize = this.getFontSize(params);
 			if (params['title'].length*fontSize < width) {
@@ -253,20 +340,24 @@
 					id: this.getObjectID("text", params['title'])
 					}, params['title']); 
 			}
-			this.objectIDs.push(this.getObjectID("text", params['title']))
+			this.objectIDs.push(this.getObjectID("text", params['title']));
 
         	this.blockMap[params["title"]] = {
         		"coord": coord,
         		"width": width,
         		"height": height,
-        		"center": {'x': coord['x'] + width/2, 'y': coord['y'] + height/2}
+        		"center": {'x': coord['x'] + width/2, 'y': coord['y'] + height/2},
+        		"pads": [ {'x': coord['x'] + width/2, 'y': coord['y']}, 
+        				  {'x': coord['x'] + width/2, 'y': coord['y'] + height},
+        				  {'x': coord['x'], 'y': coord['y'] + height/2}, 
+        				  {'x': coord['x'] + width, 'y': coord['y'] + height/2} ]
         	}
 
         	return this;
         },
         addWire: function(params) {
         	var coords = []
-        	if (params["path"]) {	
+        	if (params["path"]) {	// explicit grid path 
         		if (this.grid) {
         			for (var i=0; i<params["path"].length; i++) {
         				var el = params["path"][i];
@@ -275,10 +366,10 @@
         		} else {
         			coords = params["path"];
         		}
-        	} else {	
-	        	var start = this.blockMap[params["start"]]['center'];
-	        	var end = this.blockMap[params["end"]]['center'];
-	        	coords = [[start['x'], start['y']], [end['x'], end['y']]];
+        	} else {	// autorouter
+	        	var start = this.blockMap[params["start"]]['pads'];
+	        	var end = this.blockMap[params["end"]]['pads'];
+	        	coords = this.mazeRouter(start, end)
 			}
 			this.path( {
 				d: "M" + coords.map(function(x) { return x.join(" ")}).join(" L") + "",
