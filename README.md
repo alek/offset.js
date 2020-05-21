@@ -8,6 +8,16 @@ No external dependencies, no data bindings. Layout & event handling only.
 
 ### Sample Usage ###
 
+*Include the script*
+```js
+<script src="https://cdn.jsdelivr.net/gh/alek/offset.js@master/offset.js"></script>
+```
+
+*Create the target SVG container*
+```html
+<svg id="results" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="960" height="540"></
+```
+
 #### Grid-based Manual Routing ####
 
 ```js
@@ -26,5 +36,5 @@ No external dependencies, no data bindings. Layout & event handling only.
       graph.addWire({"path": [[14,7], [15,7], [15,9], [16,9] ]})
       graph.addWire({"path": [[14,14], [18,14], [18,13]]})
 ```
-Output:
+*Output:*
 ![Output](https://user-images.githubusercontent.com/54517/82421251-98757480-9a35-11ea-8949-0985955572bb.png)
