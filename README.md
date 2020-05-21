@@ -17,7 +17,7 @@ No external dependencies, no data bindings. Layout & event handling only.
 ```html
 <svg id="results" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="960" height="540"></
 ```
-### Block Diagram Setup ###
+#### Block Diagram Setup ####
 
 ```js
       var graph = BlockDiagram("results", {width: 960, height: 540})
