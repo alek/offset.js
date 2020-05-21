@@ -1,6 +1,6 @@
 # offset.js
 
-Simple grid-based SVG layout library. Ideal for no-frills block diagram rendering and things alike. 
+Simple grid-based SVG layout library. Ideal for no-frills block diagram rendering & things alike. 
 
 No external dependencies, no data bindings. Layout & event handling only. 
 
