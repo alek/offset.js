@@ -309,7 +309,7 @@
         	return this;
         },
         text: function(params, text) {
-			this.container.appendChild(this.addSVG('text', params)).appendChild(document.createTextNode(text.toString()));
+			this.container.appendChild(this.addSVG("text", params)).appendChild(document.createTextNode(text.toString()));
 			return this;
 		},
 		textBlock: function(params, text) {
@@ -341,8 +341,8 @@
                     y: Math.ceil(Math.random()*(1 + this.grid.rows - params.height - 2))
                 }
                 var freeSpace = true;
-                for (var i=0; i<params.width; i++) {
-                    for (var j=0; j<params.height; j++) {
+                for (var i=-1; i<params.width+1; i++) {
+                    for (var j=-1; j<params.height+1; j++) {
                         if (this.grid.matrix[coord.x + i][coord.y + j]) {
                             freeSpace = false;
                         }
@@ -353,7 +353,7 @@
                     break;    
                 }
                 
-                if (++attemptCount > 10) {
+                if (++attemptCount > 100) {
                     throw "No free space available";
                 }
             }
@@ -392,8 +392,8 @@
 				this.text( { 
 					x: coord.x + width/2,
 					y: coord.y + height/2,
-					"fill": this.textColor ? this.textColor : "#fff",
-					"style": this.getSVGFontStyle(params),
+					fill: this.textColor ? this.textColor : "#fff",
+					style: this.getSVGFontStyle(params),
 					id: this.getObjectID("text", params.title)
 					}, params.title); 
 			} else {
