@@ -6,7 +6,7 @@ No external dependencies, no data bindings. Layout & event handling only.
 
 *Work in progress, please come back later.*
 
-### Sample Usage ###
+## Sample Usage ##
 
 *Include the script*
 ```js
@@ -17,7 +17,7 @@ No external dependencies, no data bindings. Layout & event handling only.
 ```html
 <svg id="results" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="960" height="540"></
 ```
-#### Block Diagram Setup ####
+### Block Diagram Setup ###
 
 ```js
       var graph = BlockDiagram("results", {width: 960, height: 540})
@@ -33,7 +33,7 @@ No external dependencies, no data bindings. Layout & event handling only.
       graph.addBlock({x: 10, y: 12, width: 4, height: 4, title: "And one more for good measure"})
 ```
 
-##### Grid-based Manual Routing #####
+#### Grid-based Manual Routing ####
 
 ```js
       graph.addWire({"path": [[14,7], [15,7], [15,9], [16,9] ]})
@@ -43,7 +43,7 @@ No external dependencies, no data bindings. Layout & event handling only.
 *Output:*
 ![Manual Grid Routed Diagram](https://user-images.githubusercontent.com/54517/82421251-98757480-9a35-11ea-8949-0985955572bb.png)
 
-##### Simple Autorouter #####
+#### Simple Autorouter ####
 
 ```js
       graph.addWire({"start": "Random Title One", "end": "Title Number Two"})
