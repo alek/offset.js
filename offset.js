@@ -115,16 +115,24 @@
 				}
 			return h;
         },
-        getObjectID: function(type, title) {
+        createObjectID: function(type, title) {
         	if (!Array.isArray(title)) {
 	        	return this.id + ";" + type + ";" + this.objectHash(title);
 	        } else {
-	        	var key = []
+	        	var key = [];
 	        	for (var i=0; i<title.length; i++) {
-	        		key.push(this.objectHash(title[i]))
+	        		key.push(this.objectHash(title[i]));
 	        	}
-	        	return this.id + ";" + type + ";" + key.join(";")
+                return this.getObjectID(type, key);
 	        }
+        },
+        getObjectID: function(type, key) {
+            return this.id + ";" + type + ";" + (Array.isArray(key) ? key.join(";") : key);
+        },
+        getBlockWrapper: function(object, container) {
+            var id = object.getAttribute("id")
+            var blockID = container.getObjectID("block", id.split(";")[2])
+            return document.getElementById(blockID)
         },
         getJSONHash: function(el) {
         	return this.objectHash(JSON.stringify(el));
@@ -135,10 +143,10 @@
         findObjects: function(params) {
         	var results = []        
         	if (params.start && params.end) {
-        		results.push(document.getElementById(this.getObjectID("path", [params.start,params.end])))
+        		results.push(document.getElementById(this.createObjectID("path", [params.start,params.end])))
 			} else {
-				results.push(document.getElementById(this.getObjectID("text", params.title)));
-        		results.push(document.getElementById(this.getObjectID("block", params.title)));
+				results.push(document.getElementById(this.createObjectID("text", params.title)));
+        		results.push(document.getElementById(this.createObjectID("block", params.title)));
 			}
 			return results;
         },
@@ -241,6 +249,13 @@
 			}
 			return bestPath;
         },
+        getCallbackHandler: function(handler) {
+            var container = this;
+            return function(event) {
+                return handler(event, this, container);
+            }
+        },
+
 
         // --- public functions --- 
 
@@ -274,7 +289,7 @@
 				height: this.height,
 				stroke: null,
 				fill: params.color,
-				style: "stroke-width:0;"
+                "stroke-width": 0
 			});	
         	return this;
         },
@@ -327,7 +342,7 @@
 				r: params.r,
 				stroke: null,
 				fill: (params.color != null) ? params.color : "#f00",
-				style: "stroke-width:0",
+                "stroke-width": 0,
 				id: params.id
 			});
         	return this;
@@ -398,10 +413,11 @@
                 height: height,
                 stroke: params.border ? params.border : this.color,
                 fill: params.fill ? params.fill : "none",
-                style: "stroke-width:1",
-                id: this.getObjectID("block", params.title)
+                selected: false,
+                "stroke-width": 1,
+                id: this.createObjectID("block", params.title)
             }); 
-            this.objectIDs.push(this.getObjectID("block", params.title));
+            this.objectIDs.push(this.createObjectID("block", params.title));
             this.updateGridAllocation(params);
 
 			var fontSize = this.getFontSize(params);
@@ -411,7 +427,7 @@
 					y: coord.y + height/2,
 					fill: this.textColor ? this.textColor : "#fff",
 					style: this.getSVGFontStyle(params),
-					id: this.getObjectID("text", params.title)
+					id: this.createObjectID("text", params.title)
 					}, params.title); 
 			} else {
 				this.textBlock( { 
@@ -421,10 +437,10 @@
 					height: height,
 					color: this.textColor ? this.textColor : "#fff",
 					style: this.getHTMLFontStyle(params, width, height),
-					id: this.getObjectID("text", params.title)
+					id: this.createObjectID("text", params.title)
 					}, params.title); 
 			}
-			this.objectIDs.push(this.getObjectID("text", params.title));
+			this.objectIDs.push(this.createObjectID("text", params.title));
 
         	this.blockMap[params.title] = {
         		coord: coord,
@@ -457,26 +473,26 @@
 				"stroke-width": 1,
 				fill: "none",
 				stroke: this.color ? this.color : "#fff",
-				id: this.getObjectID("path", [params.start,params.end])
+				id: this.createObjectID("path", [params.start,params.end])
 			})
-			this.objectIDs.push(this.getObjectID("path", [params.start,params.end]))
+			this.objectIDs.push(this.createObjectID("path", [params.start,params.end]))
 			return this;
         },
         enableBlock(params) {
-        	var el = document.getElementById(this.getObjectID("block", params.title));
+        	var el = document.getElementById(this.createObjectID("block", params.title));
         	var fill = el.getAttribute("fill");
         	el.setAttribute("fill", this.color);
         	el.setAttribute("fill-opacity", params.opacity ? params.opacity : 1.0);
         	return this;
         },
         disableBlock(params) {
-        	var el = document.getElementById(this.getObjectID("block", params.title));
+        	var el = document.getElementById(this.createObjectID("block", params.title));
         	var fill = el.getAttribute("fill");
 			el.setAttribute("fill", null);
         	return this;
         },
         toggleBlock(params) {
-        	var el = document.getElementById(this.getObjectID("block", params.title));
+        	var el = document.getElementById(this.createObjectID("block", params.title));
         	var fill = el.getAttribute("fill");
         	if (fill === "none") {
 	        	el.setAttribute("fill", this.color);
@@ -487,7 +503,7 @@
         	return this;
         },
         toggleWire(params) {
-        	var el = document.getElementById(this.getObjectID("path", [params.start,params.end]));
+        	var el = document.getElementById(this.createObjectID("path", [params.start,params.end]));
         	var width = el.getAttribute("stroke-width");
         	if (width == 1) {
         		el.setAttribute("stroke-width", 2);
@@ -527,16 +543,28 @@
 	        			this.setAttribute("stroke-width", 1)
 	        		});
         		} else if (type === "text") {
-	        		el.addEventListener("mouseover", function(event) {
-				        var id = this.getAttribute("id")
-				        var block = document.getElementById(id.split(";")[0] + ";" + "block;" + id.split(";")[2])
-				        if (block) { block.setAttribute("fill", "rgba(255,255,255,0.1)") } 
-	        		});
-	        		el.addEventListener("mouseout", function(event) {
-				        var id = this.getAttribute("id")
-				        var block = document.getElementById(id.split(";")[0] + ";block;" + id.split(";")[2])
-				        if (block) { block.setAttribute("fill", "none") }        				
-	        		});
+                    el.addEventListener("mouseover", this.getCallbackHandler(function(event, object, container) {
+                        var block = container.getBlockWrapper(object, container);
+                        if (block) { block.setAttribute("fill", "rgba(255,255,255,0.2)") } 
+                    }));
+                    el.addEventListener("mouseout", this.getCallbackHandler(function(event, object, container) {
+                        var block = container.getBlockWrapper(object, container);
+                        if (block) { block.setAttribute("fill", "none") }
+                    }));
+
+                    el.addEventListener("click", this.getCallbackHandler(function(event, object, container) {
+                        var block = container.getBlockWrapper(object, container);
+                        if (block) { 
+                            var selected = (block.getAttribute("selected") === 'true')
+                            if (!selected) {
+                                block.setAttribute("stroke-width", 5);        
+                                block.setAttribute("selected", true);
+                            } else {
+                                block.setAttribute("stroke-width", 1);
+                                block.setAttribute("selected", false);
+                            }
+                         }
+                    }));
         		}
         	}
         },
