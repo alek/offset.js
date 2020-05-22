@@ -19,6 +19,7 @@
 
     BlockDiagram.init = function(el, params) {
         var self = this;
+        self.id = "bd-" + Math.floor(Math.random()*1024)
         self.container = document.getElementById(el);
         self.anchor = {x: params.x, y: params.y};
         self.width = params.width;
@@ -116,13 +117,13 @@
         },
         getObjectID: function(type, title) {
         	if (!Array.isArray(title)) {
-	        	return type + ";" + this.objectHash(title);
+	        	return this.id + ";" + type + ";" + this.objectHash(title);
 	        } else {
 	        	var key = []
 	        	for (var i=0; i<title.length; i++) {
 	        		key.push(this.objectHash(title[i]))
 	        	}
-	        	return type + ";" + key.join(";")
+	        	return this.id + ";" + type + ";" + key.join(";")
 	        }
         },
         getJSONHash: function(el) {
@@ -361,6 +362,21 @@
             
             return result;
         },
+        getBlockPads: function(coord, width, height) {
+            var pads = [];            
+            if (width < this.width*0.5 && height < this.width*0.5) {
+                var offsets = [[width/2,0], [width/2,height], [0, height/2, width, height/2]];
+            } else {
+                var offsets = [[width*0.25,0], [width*0.5,0], [width*0.75,0], 
+                               [width,height*0.25], [width,height*0.5], [width,height*0.75],
+                               [width*0.75,height], [width*0.5,height], [width*0.25,height],
+                               [0,height*0.75], [0,height*0.5], [0,height*0.25]];
+            }
+            for (var i=0; i<offsets.length; i++) {
+                pads.push({ x: coord.x + offsets[i][0], y: coord.y + offsets[i][1]} );
+            }
+            return pads;
+        },
         addBlock: function(params) {
 
             var width = this.getMeasure(params.width, 'width');
@@ -415,10 +431,7 @@
         		width: width,
         		height: height,
         		center: {x: coord.x + width/2, y: coord.y + height/2},
-        		pads: [ {x: coord.x + width/2, y: coord.y}, 
-        				{x: coord.x + width/2, y: coord.y + height},
-        				{x: coord.x, y: coord.y + height/2}, 
-        		      	{x: coord.x + width, y: coord.y + height/2} ]
+        		pads: this.getBlockPads(coord, width, height)
         	}
 
         	return this;
@@ -505,7 +518,7 @@
         	for (var i=0; i<this.objectIDs.length; i++) {
         		var el = document.getElementById(this.objectIDs[i]);
         		var id = el.getAttribute("id")
-        		var type = id.split(";")[0]
+        		var type = id.split(";")[1]
         		if (type === "path") {
 	        		el.addEventListener("mouseover", function(event) {
 	        			this.setAttribute("stroke-width", 3)
@@ -516,12 +529,12 @@
         		} else if (type === "text") {
 	        		el.addEventListener("mouseover", function(event) {
 				        var id = this.getAttribute("id")
-				        var block = document.getElementById("block;" + id.split(";")[1])
-				        if (block) { block.setAttribute("fill", "rgba(255,255,255,0.1)") }        				
+				        var block = document.getElementById(id.split(";")[0] + ";" + "block;" + id.split(";")[2])
+				        if (block) { block.setAttribute("fill", "rgba(255,255,255,0.1)") } 
 	        		});
 	        		el.addEventListener("mouseout", function(event) {
 				        var id = this.getAttribute("id")
-				        var block = document.getElementById("block;" + id.split(";")[1])
+				        var block = document.getElementById(id.split(";")[0] + ";block;" + id.split(";")[2])
 				        if (block) { block.setAttribute("fill", "none") }        				
 	        		});
         		}
