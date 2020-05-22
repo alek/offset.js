@@ -32,6 +32,7 @@
 
     	// -- internal functions --- 
 		
+        // create svg object
 		addSVG: function(tag, attrs) {	
 			var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
 			for (var k in attrs) {
@@ -39,6 +40,7 @@
 			}
 			return el;
 		},
+        // create html object
 		addHTML: function(tag, text, attrs) {
 			var el = document.createElementNS('http://www.w3.org/1999/xhtml', tag);
 			for (var k in attrs) {
@@ -47,6 +49,7 @@
 			el.textContent = text;
 			return el;
 		},
+        // get absolute coordinates 
         getCoord: function(params) {
         	if (this.grid) {
 				if ((params.x != null) && (params.y != null)) {
@@ -62,6 +65,7 @@
 	    	    }
 	    	}
         },
+        // get absolute distance
         getMeasure: function(val, type) {
         	if (!this.grid) {
         		return val;
@@ -78,6 +82,7 @@
         getFontSize: function(params) {
         	return this.fontSize ? this.fontSize : params;
         },
+        // svg font rendering params
         getSVGFontStyle: function(params) {
 			var config = {
 				"font-size": params.fontSize ? params.fontSize : (this.fontSize ? this.fontSize : 10),
@@ -91,6 +96,7 @@
 			}
 			return Object.keys(config).map(function(key) { return key + ":" + config[key]}).join(";");
         },
+        // html (css flexbox) font rendering params
         getHTMLFontStyle: function(params, width, height) {
 			var config = {
 				"font-size": params.fontSize ? params.fontSize : (this.fontSize ? this.fontSize : 10),
@@ -106,6 +112,7 @@
 			}
 			return Object.keys(config).map(function(key) { return key + ":" + config[key]}).join(";");
         },
+        // get unique object hash
         objectHash: function(s) {
         	if (s == null) { return "" }
 			var h = 0, l = s.length, i = 0;
@@ -115,6 +122,7 @@
 				}
 			return h;
         },
+        // create a unique (namespace, title) object id
         createObjectID: function(type, title) {
         	if (!Array.isArray(title)) {
 	        	return this.id + ";" + type + ";" + this.objectHash(title);
@@ -129,6 +137,7 @@
         getObjectID: function(type, key) {
             return this.id + ";" + type + ";" + (Array.isArray(key) ? key.join(";") : key);
         },
+        // get an enclosing block for a given object
         getBlockWrapper: function(object, container) {
             var id = object.getAttribute("id")
             var blockID = container.getObjectID("block", id.split(";")[2])
@@ -137,9 +146,11 @@
         getJSONHash: function(el) {
         	return this.objectHash(JSON.stringify(el));
         },
+        // each wire is addressed by a (order-insensitive) list of endpoints
         getWireTitle: function(entries) {
         	return entries.sort().join(";");
         },
+        // find a dom object 
         findObjects: function(params) {
         	var results = []        
         	if (params.start && params.end) {
@@ -150,6 +161,7 @@
 			}
 			return results;
         },
+        // create a binary grid matrix
         getGridMatrix: function(width, height) {
         	var result = [];
         	for (var i=0; i<width; i++) {
@@ -161,7 +173,8 @@
         	}
         	return result;
         },
-        isOccupied: function(coord) {   // absolute coordinate addressing
+        // check whether a given (absolute) location coord is occupied
+        isOccupied: function(coord) {   
         	if (this.grid) {
         		var delta = [[1,0],[-1,0], [0,1], [0,-1], [1, 1], [1, -1], [-1, 1], [-1, -1]]
         		for (var i=0; i<delta.length; i++) {
@@ -181,9 +194,11 @@
         		return false;
         	}
         },
+        // is coordinate within graph bounds ?
         isWithinBounds: function(coord) {
         	return (coord.x > 0) && (coord.y > 0) && (coord.x < this.width) && (coord.y < this.height)        	
         },
+        // get a given coord's neighbor coords
         getFreeNeighbors: function(coord) {
             // shoot far & backtrack
         	var candidates = [
@@ -200,9 +215,11 @@
         	}
         	return result;
         },
+        // l1 distance between coords
         getDistance: function(node1, node2) {
             return Math.abs(node1.x - node2.x) + Math.abs(node1.y - node2.y)
         },
+        // sort by l2 distance
         distanceSort: function(target) {
         	return function(a, b) {
         		var d1 = Math.sqrt(Math.pow(a.x - target.x,2) + Math.pow(a.y - target.y,2));
@@ -210,6 +227,7 @@
         		return d2 - d1
         	}
         },
+        // simple bfs-based wire routing
         mazeRouter: function(startNode, endNode) {
 			var queue = [startNode]
 			var path = []
@@ -237,6 +255,7 @@
 			}
 			return path.map(function(el) { return [el.x, el.y] });
         },
+        // get the best route between two sets of block pads
         getRoute: function(startPads, endPads) {
 			var bestPath = null
 			for (var i=0; i<startPads.length; i++) {
@@ -249,6 +268,7 @@
 			}
 			return bestPath;
         },
+        // get callback handler for a given graph
         getCallbackHandler: function(handler) {
             var container = this;
             return function(event) {
@@ -259,6 +279,7 @@
 
         // --- public functions --- 
 
+        // setup the underlying render grid
         setGrid: function(config) {
         	this.grid = {
         		rows: config.rows,
@@ -271,6 +292,7 @@
         	}
             return this;
         },
+        // update grid allocation map with newly created objects
         updateGridAllocation: function(params) {
         	if (this.grid) {
         		for (var x=params.x; x < params.x + params.width; x++) {
@@ -281,6 +303,7 @@
         	}
         	return this;
         },
+        // set graph background color
         setBackground: function(params) {
 			this.rect({
 				x: 0,
@@ -293,22 +316,27 @@
 			});	
         	return this;
         },
+        // configure layout (grid vs. absolute)
         setLayout: function(layoutType) {
         	this.layout = layoutType;
         	return this;
         },
+        // set primary wire/border/fill color
         setColor: function(color) {
         	this.color = color;
         	return this;
         },
+        // set primary text color
         setTextColor: function(color) {
         	this.textColor = color;
         	return this;
         },
+        // set the default font size
         setFontSize: function(size) {
         	this.fontSize = size;
         	return this;
         },
+        // svg primitive rendering
         circle: function(params) {
 			this.container.appendChild(this.addSVG("circle", params));
 			return this;
@@ -329,11 +357,13 @@
 			this.container.appendChild(this.addSVG("text", params)).appendChild(document.createTextNode(text.toString()));
 			return this;
 		},
+        // text wrapped in a css flexbox (for automated pagination)
 		textBlock: function(params, text) {
 			this.container.appendChild(this.addSVG("foreignObject", params)).appendChild(this.addHTML('div', text, params));
 			// todo: support svg-only text pagination
 			return this;
 		},
+        // add circle object
         addCircle: function(params) {
 	        var coord = this.getCoord(params);
         	this.circle({
@@ -347,6 +377,7 @@
 			});
         	return this;
         },
+        // place block on the grid
         placeBlock: function(params) {
 
             var result = null;
@@ -377,6 +408,7 @@
             
             return result;
         },
+        // get a list of connection pads for a given block
         getBlockPads: function(coord, width, height) {
             var pads = [];            
             if (width < this.width*0.5 && height < this.width*0.5) {
@@ -392,6 +424,7 @@
             }
             return pads;
         },
+        // add new block to the diagram
         addBlock: function(params) {
 
             var width = this.getMeasure(params.width, 'width');
@@ -452,6 +485,7 @@
 
         	return this;
         },
+        // add a wire between two blocks
         addWire: function(params) {
         	var coords = []
         	if (params.path) {	// explicit grid path 
@@ -478,6 +512,7 @@
 			this.objectIDs.push(this.createObjectID("path", [params.start,params.end]))
 			return this;
         },
+        // set block as active
         enableBlock(params) {
         	var el = document.getElementById(this.createObjectID("block", params.title));
         	var fill = el.getAttribute("fill");
@@ -485,12 +520,14 @@
         	el.setAttribute("fill-opacity", params.opacity ? params.opacity : 1.0);
         	return this;
         },
+        // set block as inactive
         disableBlock(params) {
         	var el = document.getElementById(this.createObjectID("block", params.title));
         	var fill = el.getAttribute("fill");
 			el.setAttribute("fill", null);
         	return this;
         },
+        // toggle the block 
         toggleBlock(params) {
         	var el = document.getElementById(this.createObjectID("block", params.title));
         	var fill = el.getAttribute("fill");
@@ -502,6 +539,7 @@
         	}
         	return this;
         },
+        // toggle the wire
         toggleWire(params) {
         	var el = document.getElementById(this.createObjectID("path", [params.start,params.end]));
         	var width = el.getAttribute("stroke-width");
@@ -510,6 +548,7 @@
         	}
         	return this;
         },
+        // render the underlying grid
         showGrid(opacity) {
         	if (!opacity) { opacity = 1.0 }
         	if (this.grid) {
@@ -530,6 +569,7 @@
         	}
         	return this;
         },
+        // add basic interactivity to the rendered diagram
         setInteractive: function() {
         	for (var i=0; i<this.objectIDs.length; i++) {
         		var el = document.getElementById(this.objectIDs[i]);
@@ -567,11 +607,6 @@
                     }));
         		}
         	}
-        },
-        setHandler: function(params, eventType, callback) {
-        	var objects = this.findObjects(params);
-        	objects.map(function(el) { if (el != null) { el.addEventListener(eventType, callback) } })
-        	return this;
         }
     };
     
