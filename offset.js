@@ -585,11 +585,29 @@
         		} else if (type === "text") {
                     el.addEventListener("mouseover", this.getCallbackHandler(function(event, object, container) {
                         var block = container.getBlockWrapper(object, container);
-                        if (block) { block.setAttribute("fill", "rgba(255,255,255,0.2)") } 
+                        var selected = (block.getAttribute("selected") === 'true')
+                        if (block) { 
+                            block.setAttribute("fill", "rgba(255,255,255,0.2)") 
+                        } 
                     }));
                     el.addEventListener("mouseout", this.getCallbackHandler(function(event, object, container) {
                         var block = container.getBlockWrapper(object, container);
                         if (block) { block.setAttribute("fill", "none") }
+                    }));
+
+                    el.addEventListener("mousemove", this.getCallbackHandler(function(event, object, container) {
+                        var block = container.getBlockWrapper(object, container);
+                        if (block) { 
+                            var selected = (block.getAttribute("selected") === 'true')
+                            if (selected) {
+                                var width = parseInt(object.getAttribute("width"));
+                                var height = parseInt(object.getAttribute("height"));
+                                block.setAttribute("x", event.clientX-width/2);
+                                object.setAttribute("x", event.clientX-width/2);
+                                block.setAttribute("y", event.clientY-height/2);
+                                object.setAttribute("y", event.clientY-height/2);
+                            }
+                        }
                     }));
 
                     el.addEventListener("click", this.getCallbackHandler(function(event, object, container) {
