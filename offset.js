@@ -173,6 +173,13 @@
         	}
         	return result;
         },
+        // snap given (absolute) coordinate to the underlying grid
+        snapToGrid: function(coord) {  
+            return {
+                x: coord.x - Math.ceil(coord.x%this.grid.cellWidth),
+                y: coord.y - Math.ceil(coord.y%this.grid.cellHeight)
+            }
+        },
         // check whether a given (absolute) location coord is occupied
         isOccupied: function(coord) {   
         	if (this.grid) {
@@ -602,10 +609,18 @@
                             if (selected) {
                                 var width = parseInt(object.getAttribute("width"));
                                 var height = parseInt(object.getAttribute("height"));
-                                block.setAttribute("x", event.clientX-width/2);
-                                object.setAttribute("x", event.clientX-width/2);
-                                block.setAttribute("y", event.clientY-height/2);
-                                object.setAttribute("y", event.clientY-height/2);
+                                if (container.grid) {
+                                    var coord = container.snapToGrid({x: event.clientX-width/2, y: event.clientY-height/2})
+                                } else {
+                                    var coord = {
+                                        x: event.clientX-width/2,
+                                        y: event.clientY-height/2
+                                    }
+                                }
+                                block.setAttribute("x", coord.x);
+                                object.setAttribute("x", coord.x);
+                                block.setAttribute("y", coord.y);
+                                object.setAttribute("y", coord.y);
                             }
                         }
                     }));
