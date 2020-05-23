@@ -83,6 +83,9 @@
         getFontSize: function(params) {
         	return this.fontSize ? this.fontSize : params;
         },
+        getFontWeight: function(params) {
+            return this.fontWeight ? this.fontWeight : params;
+        },
         // svg font rendering params
         getSVGFontStyle: function(params) {
 			var config = {
@@ -92,7 +95,7 @@
 				"text-anchor": "middle",
 				"opacity": "1.0",
 				"font-family": "Helvetica;sans-serif",
-				"font-weight": 300,
+				"font-weight": params.fontWeight ? params.fontWeight : (this.fontWeight ? this.fontWeight : 300),
 				"letter-spacing": "0px"
 			}
 			return Object.keys(config).map(function(key) { return key + ":" + config[key]}).join(";");
@@ -105,11 +108,11 @@
 				"display": "flex",
 				"align-items": "center",
 				"justify-content": "center",
-				"text-align": "center",
+				"text-align": params.align ? params.align : "center",
 				"width": width + "px",
 				"height": height + "px",				
-				"font-weight": 300,
-				"letter-spacing": "0px"
+				"font-weight": params.fontWeight ? params.fontWeight : (this.fontWeight ? this.fontWeight : 300),
+				"letter-spacing": params.spacing ? params.spacing : "0px"
 			}
 			return Object.keys(config).map(function(key) { return key + ":" + config[key]}).join(";");
         },
@@ -310,7 +313,6 @@
                         var paths = [ [ startPads[i], {x: startPads[i].x, y: endPads[j].y}, endPads[j] ],
                                       [ startPads[i], {x: endPads[j].x, y: startPads[i].y}, endPads[j] ]]
                     }
-
                     for (var k=0; k<paths.length; k++) {
                         var distance = this.getPathLength(paths[k])
                         if (this.isClearPath(paths[k])) {
@@ -435,6 +437,16 @@
         	this.fontSize = size;
         	return this;
         },
+        // set default font weight
+        setFontWeight: function(weight) {
+            this.fontWeight = weight;
+            return this;
+        },
+        // set default border weight
+        setBorderWeight: function(weight) {
+            this.borderWeight = weight;
+            return this;
+        },
         // svg primitive rendering
         circle: function(params) {
 			this.container.appendChild(this.addSVG("circle", params));
@@ -447,6 +459,10 @@
         line: function(params) {
 			this.container.appendChild(this.addSVG("line", params));
         	return this;
+        },
+        polygon: function(params) {
+            this.container.appendChild(this.addSVG("polygon", params));
+            return this;
         },
         path: function(params) {
 			this.container.appendChild(this.addSVG("path", params));
@@ -468,9 +484,9 @@
         	this.circle({
         		cx: coord.x,
         		cy: coord.y,
-				r: params.r,
+				r: this.getMeasure(params.r, 'height'),
 				stroke: null,
-				fill: (params.color != null) ? params.color : "#f00",
+				fill: (params.color != null) ? params.color : (this.color ? this.color : "#000"),
                 "stroke-width": 0,
 				id: params.id
 			});
@@ -537,7 +553,6 @@
                 params.y = target.y;
                 var coord = this.getCoord(target);
             }
-
             this.rect({
                 x: coord.x,
                 y: coord.y,
@@ -546,7 +561,7 @@
                 stroke: params.border ? params.border : this.color,
                 fill: params.fill ? params.fill : "none",
                 selected: false,
-                "stroke-width": 1,
+                "stroke-width": (this.borderWeight != null) ? this.borderWeight : 1,
                 id: this.createObjectID("block", params.title)
             }); 
             this.objectIDs.push(this.createObjectID("block", params.title));
@@ -554,7 +569,7 @@
             this.updateGridAllocation(params);
 
 			var fontSize = this.getFontSize(params);
-			if (params['title'].length*fontSize < width) {
+			if (params['title'].length*fontSize < width && (params.textRender != "html")) {
 				this.text( { 
 					x: coord.x + width/2,
 					y: coord.y + height/2,
