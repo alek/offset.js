@@ -26,6 +26,7 @@
         self.height = params.height;
         self.blockMap = {};
         self.objectIDs = [];
+        self.objectHashes = {};
     }
     
     BlockDiagram.prototype = {
@@ -134,6 +135,7 @@
                 return this.getObjectID(type, key);
 	        }
         },
+        // get dom object id 
         getObjectID: function(type, key) {
             return this.id + ";" + type + ";" + (Array.isArray(key) ? key.join(";") : key);
         },
@@ -154,10 +156,10 @@
         findObjects: function(params) {
         	var results = []        
         	if (params.start && params.end) {
-        		results.push(document.getElementById(this.createObjectID("path", [params.start,params.end])))
+        		results.push(document.getElementById(this.getObjectID("path", [params.start,params.end])))
 			} else {
-				results.push(document.getElementById(this.createObjectID("text", params.title)));
-        		results.push(document.getElementById(this.createObjectID("block", params.title)));
+				results.push(document.getElementById(this.getObjectID("text", params.title)));
+        		results.push(document.getElementById(this.getObjectID("block", params.title)));
 			}
 			return results;
         },
@@ -282,7 +284,40 @@
                 return handler(event, this, container);
             }
         },
-
+        // get wires connected to a given block
+        getWires: function(object) {
+            var id = object.getAttribute("id");
+            var blockCode = id.split(";")[2];
+            var result = [];
+            for (var i=0; i<this.objectIDs.length; i++) {
+                var el = this.objectIDs[i];
+                if (el.includes(blockCode) && el.includes("path")) {
+                    var wire = document.getElementById(el);
+                    var start = el.split(";")[2]
+                    var end = el.split(";")[3]
+                    if (wire) {
+                        result.push({
+                            id: id,
+                            domElement: wire,
+                            start: this.blockTitleFromId(start),
+                            end: this.blockTitleFromId(end),
+                            startID: start,
+                            endID: end
+                        });
+                    }
+                }
+            }
+            return result;
+        },
+        // id - title resolver helpers
+        blockTitleFromId: function(id) {
+            return this.objectHashes[id];
+        },
+        blockTitleFromDom: function(object) {
+            var id = object.getAttribute("id");
+            var key = id.split(";")[2]
+            return this.blockTitleFromId(key);
+        },
 
         // --- public functions --- 
 
@@ -458,6 +493,7 @@
                 id: this.createObjectID("block", params.title)
             }); 
             this.objectIDs.push(this.createObjectID("block", params.title));
+            this.objectHashes[this.objectHash(params.title)] = params.title;
             this.updateGridAllocation(params);
 
 			var fontSize = this.getFontSize(params);
@@ -518,6 +554,16 @@
 			})
 			this.objectIDs.push(this.createObjectID("path", [params.start,params.end]))
 			return this;
+        },
+        // remove the wire between two blocks
+        removeWire: function(params) {
+            var id = this.getObjectID("path", [params.startID,params.endID]);
+            var el = document.getElementById(id)
+            if (el) {
+                el.remove();
+                this.objectIDs = this.objectIDs.filter(function(item) { return item != id})
+            }
+            return this;
         },
         // set block as active
         enableBlock(params) {
@@ -603,6 +649,7 @@
                     }));
 
                     el.addEventListener("mousemove", this.getCallbackHandler(function(event, object, container) {
+
                         var block = container.getBlockWrapper(object, container);
                         if (block) { 
                             var selected = (block.getAttribute("selected") === 'true')
@@ -621,6 +668,16 @@
                                 object.setAttribute("x", coord.x);
                                 block.setAttribute("y", coord.y);
                                 object.setAttribute("y", coord.y);
+
+                                var title = container.blockTitleFromDom(object);    // update pads
+                                container.blockMap[title] = {
+                                    coord: coord,
+                                    width: width,
+                                    height: height,
+                                    center: {x: coord.x + width/2, y: coord.y + height/2},
+                                    pads: container.getBlockPads(coord, width, height)
+                                }
+
                             }
                         }
                     }));
@@ -635,7 +692,17 @@
                             } else {
                                 block.setAttribute("stroke-width", 1);
                                 block.setAttribute("selected", false);
+
+                                var wires = container.getWires(object, container);
+                                for (var i=0; i<wires.length; i++) {
+                                    container.removeWire(wires[i]);
+                                    container.addWire({"start": wires[i].start, "end": wires[i].end});
+                                }                               
                             }
+                         }
+                         var wires = container.getWires(object);
+                         for (var i=0; i<wires.length; i++) {
+                            wires[i].domElement.setAttribute("stroke-width", 3);
                          }
                     }));
         		}
