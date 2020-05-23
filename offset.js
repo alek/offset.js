@@ -228,6 +228,16 @@
         getDistance: function(node1, node2) {
             return Math.abs(node1.x - node2.x) + Math.abs(node1.y - node2.y)
         },
+        // get total (l1) length of the path
+        getPathLength: function(nodes) {
+            var sum = 0;
+            if (nodes.length > 1) {
+                for (var i=0; i<nodes.length-1; i++) {
+                    sum += this.getDistance(nodes[i], nodes[i+1]);
+                }
+            }
+            return sum;
+        },
         // sort by l2 distance
         distanceSort: function(target) {
         	return function(a, b) {
@@ -264,8 +274,8 @@
 			}
 			return path.map(function(el) { return [el.x, el.y] });
         },
-        // get the best route between two sets of block pads
-        getRoute: function(startPads, endPads) {
+        // get the best maze route
+        getMazeRoute: function(startPads, endPads) {
 			var bestPath = null
 			for (var i=0; i<startPads.length; i++) {
 				for (var j=0; j<endPads.length; j++) {
@@ -276,6 +286,53 @@
 				}
 			}
 			return bestPath;
+        },
+        // check if given path intersects with any of placed blocks
+        isClearPath: function(path) {
+            var result = true;
+            for (var i=0; i<path.length; i++) {
+                if (this.isOccupied(path[i])) {
+                    result = false;
+                    break;
+                }
+            }
+            return result;
+        },
+        // try to find a simple three-point route between blocks
+        getSimpleRoute: function(startPads, endPads) {
+            var result = [];
+            var minDistance = null;
+            for (var i=0; i<startPads.length; i++) {
+                for (var j=0; j<endPads.length; j++) {
+                    if ((startPads[i].x == endPads[j].x) || (startPads[i].y == endPads[j].y)) {
+                        var paths = [ [startPads[i], endPads[j]] ]
+                    } else {
+                        var paths = [ [ startPads[i], {x: startPads[i].x, y: endPads[j].y}, endPads[j] ],
+                                      [ startPads[i], {x: endPads[j].x, y: startPads[i].y}, endPads[j] ]]
+                    }
+
+                    for (var k=0; k<paths.length; k++) {
+                        var distance = this.getPathLength(paths[k])
+                        if (this.isClearPath(paths[k])) {
+                            if (!minDistance || distance < minDistance) {
+                                minDistance = distance;
+                                result = paths[k];
+                            }
+                        }
+                    }
+                }
+            }
+            return result.map(function(el) { return [el.x, el.y] });
+        },
+        // get the route between two sets of block pads
+        getRoute: function(startPads, endPads) {
+            var route = this.getSimpleRoute(startPads, endPads);
+            if (route.length == 0) {
+                return this.getMazeRoute(startPads, endPads);
+            } else {
+                return route;
+            }
+
         },
         // get callback handler for a given graph
         getCallbackHandler: function(handler) {
@@ -454,7 +511,7 @@
         getBlockPads: function(coord, width, height) {
             var pads = [];            
             if (width < this.width*0.5 && height < this.width*0.5) {
-                var offsets = [[width/2,0], [width/2,height], [0, height/2, width, height/2]];
+                var offsets = [[width/2,0], [width/2,height], [0, height/2], [width, height/2]];
             } else {
                 var offsets = [[width*0.25,0], [width*0.5,0], [width*0.75,0], 
                                [width,height*0.25], [width,height*0.5], [width,height*0.75],
