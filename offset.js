@@ -731,6 +731,28 @@
                         var block = container.getBlockWrapper(object, container);
                         if (block) { block.setAttribute("fill", "none") }
                     }));
+        		}
+        	}
+        },
+        // allow block/wire dragging & rerouting
+        setDraggable: function() {
+            for (var i=0; i<this.objectIDs.length; i++) {
+                var el = document.getElementById(this.objectIDs[i]);
+                var id = el.getAttribute("id")
+                var type = id.split(";")[1]
+                
+                if (type === "text") {
+                    el.addEventListener("mouseover", this.getCallbackHandler(function(event, object, container) {
+                        var block = container.getBlockWrapper(object, container);
+                        var selected = (block.getAttribute("selected") === 'true')
+                        if (block) { 
+                            block.setAttribute("fill", "rgba(255,255,255,0.2)") 
+                        } 
+                    }));
+                    el.addEventListener("mouseout", this.getCallbackHandler(function(event, object, container) {
+                        var block = container.getBlockWrapper(object, container);
+                        if (block) { block.setAttribute("fill", "none") }
+                    }));
 
                     el.addEventListener("mousemove", this.getCallbackHandler(function(event, object, container) {
 
@@ -789,10 +811,11 @@
                             wires[i].domElement.setAttribute("stroke-width", 3);
                          }
                     }));
-        		}
-        	}
+                }
+            }
         }
-    };
+
+    }
     
     BlockDiagram.init.prototype = BlockDiagram.prototype;
     global.BlockDiagram = BlockDiagram;
