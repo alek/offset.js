@@ -694,10 +694,22 @@
         	}
         	return this;
         },
+        // add click handler on all objects
+        addClickHandler: function(callback) {
+            for (var i=0; i<this.objectIDs.length; i++) {
+                var el = document.getElementById(this.objectIDs[i]);
+                el.style.cursor = "pointer";
+                el.addEventListener("click", this.getCallbackHandler(function(event, object, container) {
+                    this.id = object.getAttribute("id");
+                    callback(event, object, container);
+                }));
+            }
+        },
         // add basic interactivity to the rendered diagram
         setInteractive: function() {
         	for (var i=0; i<this.objectIDs.length; i++) {
         		var el = document.getElementById(this.objectIDs[i]);
+                el.style.cursor = "pointer";
         		var id = el.getAttribute("id")
         		var type = id.split(";")[1]
         		if (type === "path") {
