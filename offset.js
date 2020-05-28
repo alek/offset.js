@@ -700,7 +700,7 @@
                 var el = document.getElementById(this.objectIDs[i]);
                 el.style.cursor = "pointer";
                 el.addEventListener("click", this.getCallbackHandler(function(event, object, container) {
-                    this.id = object.getAttribute("id");
+                    this.title = container.blockTitleFromDom(object);
                     callback(event, object, container);
                 }));
             }
