@@ -742,12 +742,20 @@
                         var block = container.getBlockWrapper(object, container);
                         var selected = (block.getAttribute("selected") === 'true')
                         if (block) { 
-                            block.setAttribute("fill", "rgba(255,255,255,0.2)") 
+                            block.setAttribute("default-fill", block.getAttribute("fill"));
+                            block.setAttribute("fill", "rgba(255,255,255,0.2)");
                         } 
                     }));
                     el.addEventListener("mouseout", this.getCallbackHandler(function(event, object, container) {
                         var block = container.getBlockWrapper(object, container);
-                        if (block) { block.setAttribute("fill", "none") }
+                        if (block) { 
+                            if (block.getAttribute("default-fill")) {
+                                block.setAttribute("fill", block.getAttribute("default-fill"));
+                            } else {
+                                block.setAttribute("fill", "none");
+                            }
+                            
+                        }
                     }));
         		}
         	}
