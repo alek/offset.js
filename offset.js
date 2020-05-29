@@ -497,7 +497,7 @@
         	return this;
         },
         // add path object
-        addPath: function(params) {
+        addPolygon: function(params) {
             var grid = this;
             var coords = params.p.map(function(el) { return grid.getCoord(el)})
                                  .map(function(el) { return [el.x, el.y]});
