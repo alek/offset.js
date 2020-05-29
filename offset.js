@@ -21,9 +21,13 @@
         var self = this;
         self.id = "bd-" + Math.floor(Math.random()*1024)
         self.container = document.getElementById(el);
-        self.anchor = {x: params.x, y: params.y};
-        self.width = params.width;
-        self.height = params.height;
+        if (params != null) {          
+            self.width = params.width;
+            self.height = params.height;
+        } else { // default to 100% width/height
+            self.width = self.container.getAttribute("width");
+            self.height = self.container.getAttribute("height");
+        }
         self.blockMap = {};
         self.objectIDs = [];
         self.objectHashes = {};
@@ -740,7 +744,7 @@
                 var el = document.getElementById(this.objectIDs[i]);
                 var id = el.getAttribute("id")
                 var type = id.split(";")[1]
-                
+
                 if (type === "text") {
                     el.addEventListener("mouseover", this.getCallbackHandler(function(event, object, container) {
                         var block = container.getBlockWrapper(object, container);

@@ -20,7 +20,7 @@ No external dependencies, no data bindings. Layout & event handling only.
 #### Block Diagram Setup ####
 
 ```js
-      var graph = BlockDiagram("results", {width: 960, height: 540})
+      var graph = BlockDiagram("results")
                       .setGrid({rows: 18, columns: 30})
                       .setLayout("grid")
                       .setBackground({color: "#F6F8FA"})
