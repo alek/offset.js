@@ -496,6 +496,20 @@
 			});
         	return this;
         },
+        // add path object
+        addPath: function(params) {
+            var grid = this;
+            var coords = params.p.map(function(el) { return grid.getCoord(el)})
+                                 .map(function(el) { return [el.x, el.y]});
+            this.path( {
+                d: "M" + coords.map(function(x) { return x.join(" ")}).join(" L") + "",
+                "stroke-width": 1,
+                fill: params.fill ? params.fill : "none",
+                stroke: params.color ? params.color : "#fff",
+                id: params.id
+            });
+            return this;
+        },
         // place block on the grid
         placeBlock: function(params) {
 
