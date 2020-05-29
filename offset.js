@@ -658,28 +658,40 @@
         // set block as active
         enableBlock(params) {
         	var el = document.getElementById(this.createObjectID("block", params.title));
-        	var fill = el.getAttribute("fill");
-        	el.setAttribute("fill", this.color);
-        	el.setAttribute("fill-opacity", params.opacity ? params.opacity : 1.0);
+            if (el) {   
+            	var fill = el.getAttribute("fill");
+            	el.setAttribute("fill", this.color);
+            	el.setAttribute("fill-opacity", params.opacity ? params.opacity : 1.0);
+            } else {
+                throw "Block does not exist";
+            }
         	return this;
         },
         // set block as inactive
         disableBlock(params) {
         	var el = document.getElementById(this.createObjectID("block", params.title));
-        	var fill = el.getAttribute("fill");
-			el.setAttribute("fill", null);
+            if (el) {
+            	var fill = el.getAttribute("fill");
+	       		el.setAttribute("fill", null);
+            } else {
+                throw "Block does not exist";
+            }
         	return this;
         },
         // toggle the block 
         toggleBlock(params) {
         	var el = document.getElementById(this.createObjectID("block", params.title));
-        	var fill = el.getAttribute("fill");
-        	if (fill === "none") {
-	        	el.setAttribute("fill", this.color);
-	        	el.setAttribute("fill-opacity", params.opacity ? params.opacity : 1.0);
-        	} else {
-	        	el.setAttribute("fill", null);
-        	}
+            if (el) {
+            	var fill = el.getAttribute("fill");
+            	if (fill === "none") {
+    	        	el.setAttribute("fill", this.color);
+    	        	el.setAttribute("fill-opacity", params.opacity ? params.opacity : 1.0);
+            	} else {
+    	        	el.setAttribute("fill", null);
+            	}
+            } else {
+                throw "Block does not exist";
+            }
         	return this;
         },
         // toggle the wire
@@ -750,7 +762,7 @@
                         var block = container.getBlockWrapper(object, container);
                         if (block) { 
                             if (block.getAttribute("default-fill")) {
-                                block.setAttribute("fill", block.getAttribute("default-fill"));
+                                block.setAttribute("fill", block.getAttribute("default-fill"))  ;
                             } else {
                                 block.setAttribute("fill", "none");
                             }
