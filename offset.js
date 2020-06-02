@@ -381,6 +381,10 @@
             var key = id.split(";")[2]
             return this.blockTitleFromId(key);
         },
+        // todo: implement cleanup
+        remove: function() {
+
+        },
 
         // --- public functions --- 
 
@@ -395,6 +399,27 @@
         		cellWidth: this.width/config.columns,
         		matrix: this.getGridMatrix(config.columns, config.rows)
         	}
+            return this;
+        },
+        // set container width
+        setWidth: function(width) {
+            this.container.setAttribute("width", width + "px");
+            if (this.grid) {
+                this.grid.cellWidth = width/this.grid.columns;
+            }
+            return this;
+        },
+        // set container height 
+        setHeight: function(height) {
+            this.container.setAttribute("height", height + "px");
+            if (this.grid) {
+                this.grid.cellHeight = height/this.grid.rows;
+            }
+            return this;
+        },
+        // clear all rendered objects
+        empty() {
+            this.container.innerHTML = "";
             return this;
         },
         // update grid allocation map with newly created objects
