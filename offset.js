@@ -728,6 +728,11 @@
         	}
         	return this;
         },
+        // enable the wire 
+        enableWire(params) {
+            var el = document.getElementById(this.createObjectID("path", [params.start,params.end]));
+            el.setAttribute("stroke-width", params["stroke-width"] ? params["stroke-width"] : 2);
+        },
         // render the underlying grid
         showGrid(opacity) {
         	if (!opacity) { opacity = 1.0 }
