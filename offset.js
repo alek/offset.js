@@ -214,6 +214,27 @@
         isWithinBounds: function(coord) {
         	return (coord.x > 0) && (coord.y > 0) && (coord.x < this.width) && (coord.y < this.height)        	
         },
+        // split given text into lines of given maximum length
+        splitLines: function(text, maxLength) {
+            var tokens = text.split(" ");
+            var lines = []
+            for (var i=0; i<tokens.length; i++) {
+                if (lines.length == 0) {
+                    lines.push(tokens[i])
+                } else {
+                    var last = lines.pop()
+                    var line = [last, tokens[i]].join(" ")
+                    if (line.length < maxLength) {
+                        lines.push(line)
+                    } else {
+                        lines.push(last)
+                        lines.push(tokens[i])
+                    }                    
+                }
+            }
+            return lines;
+        },
+
         // get a given coord's neighbor coords
         getFreeNeighbors: function(coord) {
             // shoot far & backtrack
@@ -501,8 +522,26 @@
 			this.container.appendChild(this.addSVG("text", params)).appendChild(document.createTextNode(text.toString()));
 			return this;
 		},
+        textBlock: function(params, text) {
+
+            var maxLineChars = params.width/(params.fontSize*0.55)
+            var lines = this.splitLines(text, maxLineChars)
+
+            var textElement = this.container.appendChild(this.addSVG("text", params));
+            var yOffset = params.y - (lines.length-2)*params.fontSize/2
+
+            for (var i=0; i<lines.length; i++) {
+                var line = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+                line.textContent = lines[i];
+                line.setAttribute("x", params.x);
+                line.setAttribute("y", yOffset+i*params.fontSize);
+                textElement.appendChild(line); 
+            }
+
+            return this;
+        },
         // text wrapped in a css flexbox (for automated pagination)
-		textBlock: function(params, text) {
+		cssText: function(params, text) {
 			this.container.appendChild(this.addSVG("foreignObject", params)).appendChild(this.addHTML('div', text, params));
 			// todo: support svg-only text pagination
 			return this;
@@ -621,15 +660,28 @@
 					id: this.createObjectID("text", params.title)
 					}, params.title); 
 			} else {
-				this.textBlock( { 
-					x: coord.x,
-					y: coord.y,
-					width: width,
-					height: height,
-					color: this.textColor ? this.textColor : "#fff",
-					style: this.getHTMLFontStyle(params, width, height),
-					id: this.createObjectID("text", params.title)
-					}, params.title); 
+                if (params.svgOnly) {
+                    this.textBlock( { 
+                        x: coord.x + width/2,
+                        y: coord.y + height/2,
+                        width: width,
+                        height: height,
+                        fontSize: fontSize,
+                        fill: this.textColor ? this.textColor : "#fff",
+                        style: this.getSVGFontStyle(params),
+                        id: this.createObjectID("text", params.title)
+                    }, params.title); 
+                } else {
+    				this.cssText( { 
+    					x: coord.x,
+    					y: coord.y,
+    					width: width,
+    					height: height,
+    					color: this.textColor ? this.textColor : "#fff",
+    					style: this.getHTMLFontStyle(params, width, height),
+    					id: this.createObjectID("text", params.title)
+    					}, params.title); 
+                }
 			}
 			this.objectIDs.push(this.createObjectID("text", params.title));
 
